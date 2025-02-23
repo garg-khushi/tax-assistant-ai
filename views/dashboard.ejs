@@ -1,0 +1,624 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Tax Assist - Document Uploader</title>
+    <!-- Bootstrap 5 CSS -->
+    <link rel="icon" href="/favicon.jpeg" />
+    <link
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css"
+      rel="stylesheet"
+    />
+    <!-- Bootstrap Icons (optional, used for trash icon) -->
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css"
+    />
+
+    <style>
+      body {
+        margin: 0;
+        padding: 0;
+        min-height: 100vh;
+        font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+        color: #fff;
+        background: linear-gradient(135deg, #0c0c0c, #1a1a1a);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+      .glass-card {
+        backdrop-filter: blur(10px);
+        background: rgba(255, 255, 255, 0.06);
+        border: 1px solid rgba(255, 255, 255, 0.12);
+        border-radius: 1rem;
+        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
+        overflow: hidden;
+      }
+      .card-header-custom {
+        background: rgba(255, 255, 255, 0.04);
+        border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        text-align: center;
+        padding: 1rem;
+      }
+      .card-header-custom h4 {
+        margin: 0;
+        font-weight: 600;
+        color: #fff;
+      }
+      .dropzone {
+        border: 2px dashed rgba(255, 255, 255, 0.4);
+        border-radius: 0.75rem;
+        padding: 2rem;
+        text-align: center;
+        cursor: pointer;
+        transition: background-color 0.3s, border-color 0.3s;
+        color: #fff;
+      }
+      .dropzone:hover {
+        background-color: rgba(255, 255, 255, 0.07);
+      }
+      .dropzone-active {
+        background-color: rgba(255, 255, 255, 0.1);
+        border-color: #66c2ff;
+      }
+      .pdf-icon {
+        font-size: 3rem;
+        color: #f5f5f5;
+        margin-bottom: 0.5rem;
+      }
+      .file-item {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        justify-content: space-between;
+        background-color: rgba(255, 255, 255, 0.07);
+        margin-bottom: 0.5rem;
+        border-radius: 0.5rem;
+        padding: 0.5rem 1rem;
+        animation: fadeIn 0.4s ease;
+      }
+      .file-item:hover {
+        background-color: rgba(255, 255, 255, 0.1);
+      }
+      @keyframes fadeIn {
+        0% {
+          opacity: 0;
+          transform: translateY(10px);
+        }
+        100% {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+      .file-details {
+        flex: 1;
+        min-width: 0;
+        margin-right: 1rem;
+        color: #fff;
+        overflow: hidden;
+      }
+      .file-name {
+        font-weight: 600;
+        font-size: 0.95rem;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+      .progress-label {
+        font-size: 0.85rem;
+        margin-right: 1rem;
+        color: #fff;
+        min-width: 40px;
+        text-align: right;
+      }
+      .progress-bar {
+        background-color: #8bc34a;
+        color: #000;
+        font-weight: 600;
+      }
+      .remove-btn {
+        background-color: transparent;
+        border: none;
+        color: #ff7b7b;
+        font-size: 1.2rem;
+        cursor: pointer;
+        padding: 0.25rem;
+        transition: color 0.3s;
+      }
+      .remove-btn:hover {
+        color: #ff5252;
+      }
+      .upload-btn {
+        background: linear-gradient(to right, #3a8fff, #1a73e8);
+        color: #fff;
+        border: none;
+        border-radius: 0.5rem;
+        text-transform: uppercase;
+        font-weight: 600;
+        transition: background 0.3s;
+      }
+      .upload-btn:hover {
+        background: linear-gradient(to right, #2e7fff, #1669e6);
+      }
+
+      #loaderOverlay {
+        display: none;
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        backdrop-filter: blur(8px);
+        background-color: rgba(0, 0, 0, 0.5);
+        z-index: 9999;
+        align-items: center;
+        justify-content: center;
+      }
+      .spinner-border {
+        width: 5rem;
+        height: 5rem;
+        border-width: 0.5rem;
+      }
+
+      #resultsContainer {
+        margin-top: 2rem;
+        display: none;
+      }
+      .card-result {
+        background-color: rgba(255, 255, 255, 0.08);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        border-radius: 0.5rem;
+        padding: 1rem;
+        margin-bottom: 1rem;
+        text-align: center;
+        font-weight: 500;
+      }
+      .chart-container {
+        position: relative;
+        width: 100%;
+
+        max-height: 350px;
+      }
+      canvas {
+        height: 100% !important;
+      }
+
+      .results-heading {
+        text-align: center;
+        color: #f0f0f0;
+        margin-bottom: 2rem;
+        font-weight: 600;
+      }
+      .results-heading span {
+        display: block;
+        font-size: 1.2rem;
+        margin-top: 0.5rem;
+        color: #9da3a8;
+      }
+
+      .chart-card {
+        background-color: rgba(255, 255, 255, 0.08);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        border-radius: 0.5rem;
+        padding: 1rem;
+        margin-bottom: 1rem;
+      }
+      header {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        z-index: 1000;
+      }
+    </style>
+  </head>
+  <body>
+    <header class="bg-neutral-900 py-4">
+      <div
+        class="container d-flex justify-content-between align-items-center px-4"
+      >
+        <a href="/" class="text-white text-decoration-none fw-bold"
+          >TaxAssist</a
+        >
+      </div>
+    </header>
+
+    <!-- Loader Overlay -->
+    <div id="loaderOverlay">
+      <div class="spinner-border text-light" role="status"></div>
+      <span class="ms-3 fs-4">Processing your document...</span>
+    </div>
+
+    <!-- Uploader Card -->
+    <div class="container" id="uploaderSection">
+      <div class="row justify-content-center">
+        <div class="col-lg-7 col-md-9">
+          <div class="card glass-card border-0">
+            <div class="card-header-custom">
+              <h4>
+                <i class="bi bi-file-earmark-pdf me-2"></i> Upload Tax &
+                Investment Documents
+              </h4>
+            </div>
+            <div class="card-body">
+              <div class="mb-3 dropzone" id="dropzone">
+                <i class="bi bi-file-earmark-pdf pdf-icon"></i>
+                <p class="mb-1">
+                  Drag &amp; drop your
+                  <strong>Form 16, investment proofs, or any tax PDF</strong>
+                  here, or <span class="text-info">click</span> to select
+                </p>
+                <input
+                  type="file"
+                  id="fileInput"
+                  multiple
+                  accept="application/pdf"
+                  style="display: none"
+                />
+              </div>
+
+              <div id="filesList" class="mb-3"></div>
+
+              <button id="uploadBtn" class="btn w-100 upload-btn py-2">
+                <i class="bi bi-cloud-upload"></i> Upload and Analyze
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- RESULTS SECTION (hidden initially) -->
+    <div class="container" id="resultsContainer">
+      <h1 class="results-heading">
+        Tax Comparison Results
+        <span>See how Old and New Regimes compare</span>
+      </h1>
+
+      <!-- Example “cards” to show summary info returned by AI -->
+      <div class="row g-3">
+        <div class="col-md-4">
+          <div class="card-result" id="cardTaxOld"></div>
+        </div>
+        <div class="col-md-4">
+          <div class="card-result" id="cardTaxNew"></div>
+        </div>
+        <div class="col-md-4">
+          <div class="card-result" id="cardSavings"></div>
+        </div>
+      </div>
+      <div class="row g-3 mt-1">
+        <div class="col-12">
+          <div class="card-result" id="cardRecommendation"></div>
+        </div>
+      </div>
+
+      <!-- Chart row: 1) Bar Chart, 2) Old Regime Pie, 3) New Regime Pie -->
+      <div class="row g-4 mt-3">
+        <!-- Bar Chart Column -->
+        <div class="col-xl-4 col-md-12">
+          <div class="chart-card">
+            <h5 class="text-center mb-2">Old vs New Tax Payable</h5>
+            <div class="chart-container">
+              <canvas id="taxComparisonChart"></canvas>
+            </div>
+          </div>
+        </div>
+
+        <!-- Old Regime Pie -->
+        <div class="col-xl-4 col-md-6">
+          <div class="chart-card">
+            <h5 class="text-center mb-2">Old Regime Breakdown</h5>
+            <div class="chart-container">
+              <canvas id="oldRegimePie"></canvas>
+            </div>
+          </div>
+        </div>
+
+        <!-- New Regime Pie -->
+        <div class="col-xl-4 col-md-6">
+          <div class="chart-card">
+            <h5 class="text-center mb-2">New Regime Breakdown</h5>
+            <div class="chart-container">
+              <canvas id="newRegimePie"></canvas>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Bootstrap JS + Popper -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <script>
+      let filesData = [];
+      const dropzone = document.getElementById("dropzone");
+      const fileInput = document.getElementById("fileInput");
+      const filesList = document.getElementById("filesList");
+      const uploadBtn = document.getElementById("uploadBtn");
+      const loaderOverlay = document.getElementById("loaderOverlay");
+      const uploaderSection = document.getElementById("uploaderSection");
+      const resultsContainer = document.getElementById("resultsContainer");
+
+      function renderFilesList() {
+        filesList.innerHTML = "";
+        filesData.forEach((fileObj, index) => {
+          const { file, progress } = fileObj;
+
+          const fileItem = document.createElement("div");
+          fileItem.className = "file-item";
+
+          const fileDetails = document.createElement("div");
+          fileDetails.className = "file-details";
+
+          const fileName = document.createElement("div");
+          fileName.className = "file-name text-truncate";
+          fileName.textContent = file.name;
+          fileDetails.appendChild(fileName);
+
+          const rightSide = document.createElement("div");
+          rightSide.className = "d-flex align-items-center";
+
+          const progressLabel = document.createElement("div");
+          progressLabel.className = "progress-label";
+          progressLabel.textContent = progress + "%";
+
+          const progressWrapper = document.createElement("div");
+          progressWrapper.className = "progress me-2";
+          progressWrapper.style.width = "120px";
+
+          const progressBar = document.createElement("div");
+          progressBar.className = "progress-bar";
+          progressBar.style.width = progress + "%";
+          progressBar.setAttribute("role", "progressbar");
+          progressBar.setAttribute("aria-valuenow", progress);
+          progressBar.setAttribute("aria-valuemin", 0);
+          progressBar.setAttribute("aria-valuemax", 100);
+          if (progress > 0) {
+            progressBar.textContent = progress + "%";
+          }
+
+          progressWrapper.appendChild(progressBar);
+
+          const removeBtn = document.createElement("button");
+          removeBtn.className = "remove-btn";
+          removeBtn.innerHTML = '<i class="bi bi-trash-fill"></i>';
+          removeBtn.onclick = () => removeFile(index);
+
+          rightSide.appendChild(progressLabel);
+          rightSide.appendChild(progressWrapper);
+          rightSide.appendChild(removeBtn);
+
+          fileItem.appendChild(fileDetails);
+          fileItem.appendChild(rightSide);
+
+          filesList.appendChild(fileItem);
+        });
+      }
+
+      function removeFile(index) {
+        filesData.splice(index, 1);
+        renderFilesList();
+      }
+
+      function addFiles(newFiles) {
+        const existingKeys = filesData.map((f) => f.file.name + f.file.size);
+        newFiles.forEach((file) => {
+          if (
+            file.type === "application/pdf" ||
+            file.name.toLowerCase().endsWith(".pdf")
+          ) {
+            const key = file.name + file.size;
+            if (!existingKeys.includes(key)) {
+              filesData.push({ file, progress: 0 });
+            }
+          } else {
+            alert(`"${file.name}" is not a PDF! Skipped.`);
+          }
+        });
+        renderFilesList();
+      }
+
+      function updateProgress(index, percent) {
+        filesData[index].progress = percent;
+        renderFilesList();
+      }
+
+      ["dragenter", "dragover", "dragleave", "drop"].forEach((eventName) => {
+        dropzone.addEventListener(eventName, (e) => {
+          e.preventDefault();
+          e.stopPropagation();
+        });
+      });
+      ["dragenter", "dragover"].forEach((eventName) => {
+        dropzone.addEventListener(eventName, () => {
+          dropzone.classList.add("dropzone-active");
+        });
+      });
+      ["dragleave", "drop"].forEach((eventName) => {
+        dropzone.addEventListener(eventName, () => {
+          dropzone.classList.remove("dropzone-active");
+        });
+      });
+      dropzone.addEventListener("drop", (e) => {
+        const dropped = Array.from(e.dataTransfer.files);
+        addFiles(dropped);
+      });
+
+      dropzone.addEventListener("click", () => {
+        fileInput.click();
+      });
+      fileInput.addEventListener("change", () => {
+        const selected = Array.from(fileInput.files);
+        addFiles(selected);
+        fileInput.value = "";
+      });
+
+      uploadBtn.addEventListener("click", async () => {
+        if (!filesData.length) {
+          alert("No PDF files selected.");
+          return;
+        }
+
+        loaderOverlay.style.display = "flex";
+
+        const formData = new FormData();
+        filesData.forEach((fileObj) => {
+          formData.append("files", fileObj.file);
+        });
+
+        const xhr = new XMLHttpRequest();
+        xhr.open("POST", "/merge-and-summarize");
+
+        xhr.upload.onprogress = (e) => {
+          if (e.lengthComputable) {
+            const percent = Math.round((e.loaded / e.total) * 100);
+            filesData.forEach((_, idx) => updateProgress(idx, percent));
+          }
+        };
+
+        xhr.onload = () => {
+          loaderOverlay.style.display = "none";
+
+          if (xhr.status === 200) {
+            const resp = JSON.parse(xhr.responseText);
+            console.log("Server response:", resp);
+
+            filesData = [];
+            renderFilesList();
+
+            uploaderSection.style.display = "none";
+
+            resultsContainer.style.display = "block";
+
+            const oldRegimeTax =
+              resp?.data?.taxComparison?.oldRegime?.taxPayable?.amount || 0;
+            const newRegimeTax =
+              resp?.data?.taxComparison?.newRegime?.taxPayable?.amount || 0;
+            const savings =
+              resp?.data?.taxComparison?.comparisonSummary?.regimeSavings
+                ?.amount || 0;
+            const recommendation =
+              resp?.data?.taxComparison?.comparisonSummary?.regimeRecommendation
+                ?.text || "N/A";
+
+            document.getElementById("cardTaxOld").innerText =
+              "Old Regime Tax Payable: ₹" + oldRegimeTax;
+            document.getElementById("cardTaxNew").innerText =
+              "New Regime Tax Payable: ₹" + newRegimeTax;
+            document.getElementById("cardSavings").innerText =
+              "Savings (Old - New): ₹" + savings.toFixed(2);
+            document.getElementById("cardRecommendation").innerText =
+              "Recommended Regime: " + recommendation;
+
+            const ctxBar = document
+              .getElementById("taxComparisonChart")
+              .getContext("2d");
+            new Chart(ctxBar, {
+              type: "bar",
+              data: {
+                labels: ["Old Regime", "New Regime"],
+                datasets: [
+                  {
+                    label: "Tax Payable",
+                    data: [oldRegimeTax, newRegimeTax],
+                    backgroundColor: ["#FF9800", "#03A9F4"],
+                  },
+                ],
+              },
+              options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                  y: { beginAtZero: true },
+                },
+              },
+            });
+
+            const oldGrossSalary =
+              resp?.data?.taxComparison?.oldRegime?.grossSalary?.amount || 0;
+            const oldExemptions =
+              resp?.data?.taxComparison?.oldRegime?.exemptions?.totalExemptions
+                ?.amount || 0;
+            const oldDeductions =
+              resp?.data?.taxComparison?.oldRegime?.deductions?.totalDeductions
+                ?.amount || 0;
+
+            const ctxOldPie = document
+              .getElementById("oldRegimePie")
+              .getContext("2d");
+            new Chart(ctxOldPie, {
+              type: "pie",
+              data: {
+                labels: [
+                  "Gross Salary",
+                  "Exemptions",
+                  "Deductions",
+                  "Tax Payable",
+                ],
+                datasets: [
+                  {
+                    data: [
+                      oldGrossSalary,
+                      oldExemptions,
+                      oldDeductions,
+                      oldRegimeTax,
+                    ],
+                    backgroundColor: [
+                      "#7982B9",
+                      "#A5C1DC",
+                      "#E9F6FA",
+                      "#A9A9A9",
+                    ],
+                  },
+                ],
+              },
+              options: {
+                responsive: true,
+                maintainAspectRatio: false,
+              },
+            });
+
+            const newGrossSalary =
+              resp?.data?.taxComparison?.newRegime?.grossSalary?.amount || 0;
+            const newDeductionsTotal =
+              resp?.data?.taxComparison?.newRegime?.deductions?.totalDeductions
+                ?.amount || 0;
+
+            const ctxNewPie = document
+              .getElementById("newRegimePie")
+              .getContext("2d");
+            new Chart(ctxNewPie, {
+              type: "pie",
+              data: {
+                labels: ["Gross Salary", "Deductions", "Tax Payable"],
+                datasets: [
+                  {
+                    data: [newGrossSalary, newDeductionsTotal, newRegimeTax],
+                    backgroundColor: ["#7982B9", "#A5C1DC", "#E9F6FA"],
+                  },
+                ],
+              },
+              options: {
+                responsive: true,
+                maintainAspectRatio: false,
+              },
+            });
+          } else {
+            alert(`Error: ${xhr.status} - ${xhr.statusText}`);
+          }
+        };
+
+        xhr.onerror = () => {
+          loaderOverlay.style.display = "none";
+          alert("Network or CORS error");
+        };
+
+        xhr.send(formData);
+      });
+    </script>
+  </body>
+</html>
