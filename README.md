@@ -109,16 +109,7 @@ If your server runs on a different port, update the URL accordingly.
 
 ---
 
-## 🚧 Roadmap (Optional, High-Impact Upgrades)
 
-If you want to make this enterprise-looking, add:
-- PDF generation pipeline (template-based forms)
-- Schema-based validation (Zod / Joi)
-- Authentication (sessions/JWT) + user history
-- Download links with expiring tokens
-- Audit logs (timestamped actions)
-- Containerization (Docker) + deployment guide
-- Unit/integration tests
 
 ---
 
@@ -136,9 +127,3 @@ MIT License
 
 ---
 
-## ✅ "Intimidating polish" checklist (do these 4 quick things)
-
-1) Add a screenshot/GIF to the README (top section)  
-2) Add a "Demo scope vs Production scope" section  
-3) Add a `Roadmap` issue board (optional)  
-4) Make sure `node_modules/` is ignored (you already did)
